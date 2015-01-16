@@ -1,6 +1,6 @@
 #!/usr/bin/python
 from ply import lex
-#import debug as debug
+
 
 #reserved words
 reserved={
@@ -57,9 +57,10 @@ tokens=[
 t_ignore_WHITESPACE=r"\s"
 
 
+
+
 def t_STRING(t):
-	r"(?P<start>\"|')[^\"']*(?P=start)"
-	t.value=t.value.replace("\"","").replace("'","")
+	r"\"(\\.|[^"])*\""
 	return t
 	
 def t_NUMBER(t):
@@ -86,6 +87,7 @@ def t_DIVISION_OP(t):
 def t_MODULUS_OP(t):
 	r"%"
 	return t
+
 def t_SEMICOLON(t):
 	r";"
 	return t
@@ -124,14 +126,22 @@ def t_ASSIGNMENT_OP(t):
 	r"=|"r"\+=|"r"-=|"r"\*=|"r"/=|"r"%="
 	return t
 
+def t_ignore_COMMENT(t):
+	r"\#.*"
 	
+#newline
+def t_newline(t):
+	r"\n+"
+	t.lexer.lineno+=len(t.value)
+
+#error	
 def t_error(t):
 	print "Illegal character %s" % t.value[0]
 	t.lexer.skip(1)
 
 #identifier
 def t_IDENTIFIER(t):
-    r"[\$@% ][a-zA-Z$_][\w$]*"
+    r"[\$@%]?[a-zA-Z$_][\w$]*"
     t.type = reserved.get(t.value,'IDENTIFIER')    
     return t
 
@@ -140,7 +150,6 @@ def runlexer(inputfile):
 	program=open(inputfile).read()
 	lexer.input(program)
 	print "Type \t\t\t\t\t Value"
-	print "---- \t\t\t\t\t ------"
 	for tok in iter(lexer.token, None):
 		print "%s \t\t\t\t\t %s" %(repr(tok.type),repr(tok.value))
 	
